@@ -14,6 +14,7 @@ class Agent:
         self.speed = speed
         self.pos = pos
         self.graph_algo = graph_algo
+        self.next_node = -1
 
     def setSrc(self, src):
         self.src = src
@@ -23,6 +24,9 @@ class Agent:
 
     def setPos(self, pos):
         self.pos = pos
+
+    def setNextNode(self, next_node):
+        self.next_node = next_node
 
     def save_agents(self):
         json_str = {"Agents": self.dict_of_agents()}
