@@ -32,3 +32,7 @@ class Pokemon:
             final_dict = {"Pokemon", agent}
             pokemon.append(final_dict)
         return pokemon
+
+    def load_pokemons(self, file_name: str):
+       pass
+

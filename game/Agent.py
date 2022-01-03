@@ -42,3 +42,6 @@ class Agent:
             final_dict = {"Agent", agent}
             agents.append(final_dict)
         return agents
+
+    def next_edge(self):
+        pass
