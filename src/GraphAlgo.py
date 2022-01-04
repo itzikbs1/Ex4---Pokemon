@@ -1,18 +1,18 @@
-import heapq
 import json
 import random
 import sys
+from queue import PriorityQueue
 from typing import List
 
 import matplotlib
 from matplotlib import pyplot as plt
 
+from src.DiGraph import DiGraph
+from src.GraphInterface import GraphInterface
+from src.Node import Node
+from src.GraphAlgoInterface import GraphAlgoInterface
+
 matplotlib.matplotlib_fname()
-from GraphAlgoInterface import GraphAlgoInterface
-from Node import Node
-from DiGraph import DiGraph
-from GraphInterface import GraphInterface
-from queue import PriorityQueue
 
 
 class GraphAlgo(GraphAlgoInterface):
