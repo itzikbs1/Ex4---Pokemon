@@ -1,3 +1,6 @@
+import math
+
+
 class Location:
 
     def __init__(self, x, y, z):
@@ -38,6 +41,7 @@ class Node:
         :param z:
         """
         self.location = (x, y, z)
+
 
     def __repr__(self):
         return f"{self.id}: |edges out| {self.out_edges_size} |edges in| {self.in_edges_size}"

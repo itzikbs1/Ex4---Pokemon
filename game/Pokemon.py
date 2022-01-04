@@ -6,11 +6,11 @@ import json
 
 class Pokemon:
 
-    def __init__(self, value, type_, pos: Location, graph_algo: GraphAlgo):
+    def __init__(self, value, type_, pos: tuple):
         self.value = value
         self.type_ = type_
         self.pos = pos
-        self.graph_algo = graph_algo
+        # self.graph_algo = graph_algo
 
     def setType(self, type_):
         self.type_ = type_

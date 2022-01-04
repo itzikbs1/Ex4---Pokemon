@@ -6,15 +6,16 @@ import json
 
 class Agent:
 
-    def __init__(self, id, value, src: Node, dest: Node, speed, pos: Location, graph_algo: GraphAlgo):
+    def __init__(self, id, value, src, dest, speed, pos: tuple, graph : GraphAlgo):
         self.id = id
         self.value = value
         self.src = src
         self.dest = dest
         self.speed = speed
         self.pos = pos
-        self.graph_algo = graph_algo
+        self.graph_algo = graph
         self.next_node = -1
+        self.next_node_list = []  # [node :Node]
 
     def setSrc(self, src):
         self.src = src
@@ -28,19 +29,25 @@ class Agent:
     def setNextNode(self, next_node):
         self.next_node = next_node
 
-    def save_agents(self):
+    def save_agent(self):
         json_str = {"Agents": self.dict_of_agents()}
         s = json.dumps(json_str, indent=4)
         return s
 
+    def add_node(self, nodes: list):
+        self.next_node_list.append(nodes)
+
     def dict_of_agents(self):
         agents = []
-        for k, v in self.graph_algo.graph.agents.items():
-            agent = {"id": k, "value": v.value, "src": v.src, "dest": v.dest}
-            loc = str(v.pos)[1:-1]
-            agent["pos"] = str(loc.replace(' ', ''))
-            final_dict = {"Agent", agent}
-            agents.append(final_dict)
+        k = self.id
+        v = self.value
+        src = self.src
+        dest = self.dest
+        agent = {"id": k, "value": v.value, "src": src, "dest": dest}
+        loc = str(v.pos)[1:-1]
+        agent["pos"] = str(loc.replace(' ', ''))
+        final_dict = {"Agent", agent}
+        agents.append(final_dict)
         return agents
 
     def next_edge(self):
