@@ -4,6 +4,7 @@ from game.client import Client
 import json
 from pygame import gfxdraw
 import pygame
+import time as Time
 from Button import Button
 from pygame import *
 from src.GraphAlgo import GraphAlgo
@@ -11,10 +12,13 @@ from src.GraphAlgo import GraphAlgo
 WIDTH, HEIGHT = 1080, 720
 screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
 clock = pygame.time.Clock()
+REFRESH = 60
 pygame.font.init()
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 RADIUS = 15
 exit_img = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/Exit.png").convert_alpha()
+pause_img = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/pause.png").convert_alpha()
+background = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/5183000.jpg")
 
 
 class GUI:
@@ -27,18 +31,27 @@ class GUI:
         self.graph = GraphAlgo()
 
     def draw(self):
+        pressed_pause = False
+        start_time = Time.time()
         pygame.init()
         self.graph = self.get_graph()
         self.agents = self.get_agents()
         self.pokemons = self.get_pokemons()
         pygame.display.set_caption("Pokemon Game")
-        screen.fill(Color(0, 0, 0))
         running = True
         while running:
-            pygame.display.flip()
+            pygame.display.update()
+            clock.tick(REFRESH)
+            screen.fill((0, 0, 0))
+            screen.blit(background, (0, 0))
+            elapsed_time = Time.time() - start_time
             if self.add_exit_button():
                 running = False
-
+            if self.add_pasue_button():
+                self.pause()
+                start_time = Time.time() - elapsed_time
+            self.get_time(int(elapsed_time))
+            self.get_score()
             self.draw_nodes()
             self.draw_edges()
             self.draw_agents()
@@ -47,7 +60,8 @@ class GUI:
                 if event.type == pygame.QUIT:
                     running = False
 
-        pygame.display.flip()
+        pygame.display.update()
+        clock.tick(REFRESH)
         pygame.quit()
 
     def get_pokemons(self):
@@ -108,11 +122,6 @@ class GUI:
         if y:
             return self.scale(data, 50, screen.get_height() - 50, min_y, max_y)
 
-    """
-    The code below should be improved significantly:
-    The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
-    """
-
     def draw_nodes(self):
         for n in self.graph.graph.nodes.values():
             x = self.my_scale(n.location[0], x=True)
@@ -160,20 +169,20 @@ class GUI:
             else:
                 pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
 
-    def same_edge(self, p1, p2):
-        for i in self.get_graph().graph.nodes:
-            for e in self.get_graph().graph.all_out_edges_of_node(i):
-                src = self.get_graph().graph.nodes[i]
-                dest = self.get_graph().graph.nodes[e.get(0)]
-                m = (src.location(1) - dest.location(1)) / (src.location(0) - dest.location(0))
-                if p1.pos.y - src.location(1) == m * (p1.pos.x - src.location(0)) and p2.pos.y - src.location(
-                        1) == m * (p2.pos.x - src.location(0)):
-                    if p1.type != p2.type:
-                        return False
-                    else:
-                        return True
-
-        return False
+    # def same_edge(self, p1, p2):
+    #     for i in self.get_graph().graph.nodes:
+    #         for e in self.get_graph().graph.all_out_edges_of_node(i):
+    #             src = self.get_graph().graph.nodes[i]
+    #             dest = self.get_graph().graph.nodes[e.get(0)]
+    #             m = (src.location(1) - dest.location(1)) / (src.location(0) - dest.location(0))
+    #             if p1.pos.y - src.location(1) == m * (p1.pos.x - src.location(0)) and p2.pos.y - src.location(
+    #                     1) == m * (p2.pos.x - src.location(0)):
+    #                 if p1.type != p2.type:
+    #                     return False
+    #                 else:
+    #                     return True
+    #
+    #     return False
 
     def quit(self, mark):
         for event in pygame.event.get():
@@ -186,8 +195,39 @@ class GUI:
         exit_button = Button(0, 0, exit_img, 0.2)
         if exit_button.draw(screen):
             return True
-        # update screen changes
-        # display.update()
-        #
-        # refresh rate
-        # clock.tick(60)
+
+    def add_pasue_button(self):
+        pasue_button = Button(100, 0, pause_img, 0.1)
+        if pasue_button.draw(screen):
+            return True
+
+    def pause(self):
+        pause = True
+        while pause:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_c:
+                        pause = False
+            screen.fill("White")
+            self.message_to_screen("Paused", "Black", -100)
+            self.message_to_screen("Press C to continue", "Black", 25)
+            pygame.display.update()
+            clock.tick(30)
+
+    def message_to_screen(self, msg, color, y_displace=0):
+        text_surf, text_rect = self.text_objects(msg, color)
+        text_rect.center = (WIDTH / 2), (HEIGHT / 2) + y_displace
+        screen.blit(text_surf, text_rect)
+
+    def text_objects(self, msg, color):
+        text_surf = FONT.render(msg, True, color)
+        return text_surf, text_surf.get_rect()
+
+    def get_score(self):
+        for agent in self.agents:
+            score = FONT.render("Agents Score : " + str(agent.value), True, Color("Black"))
+            screen.blit(score, (WIDTH - 200, 10))
+
+    def get_time(self, current_time):
+        time = FONT.render("Game Time : " + str(current_time), True, Color("Black"))
+        screen.blit(time, (WIDTH - 500, 10))
