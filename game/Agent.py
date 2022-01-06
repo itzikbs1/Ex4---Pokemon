@@ -52,3 +52,5 @@ class Agent:
 
     def next_edge(self):
         pass
+
+

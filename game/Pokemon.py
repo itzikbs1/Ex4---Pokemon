@@ -10,6 +10,8 @@ class Pokemon:
         self.value = value
         self.type_ = type_
         self.pos = pos
+        self.src = 0
+        self.dest = 0
         # self.graph_algo = graph_algo
 
     def setType(self, type_):

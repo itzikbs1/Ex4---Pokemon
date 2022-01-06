@@ -8,6 +8,7 @@ import time as Time
 from Button import Button
 from pygame import *
 from src.GraphAlgo import GraphAlgo
+from Algo import Algo
 
 WIDTH, HEIGHT = 1080, 720
 screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
@@ -16,9 +17,9 @@ REFRESH = 60
 pygame.font.init()
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 RADIUS = 15
-exit_img = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/Exit.png").convert_alpha()
-pause_img = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/pause.png").convert_alpha()
-background = pygame.image.load("/Users/erankatz/PycharmProjects/Ex4/Images/5183000.jpg")
+exit_img = pygame.image.load("../Images/Exit.png").convert_alpha()
+pause_img = pygame.image.load("../Images/pause.png").convert_alpha()
+background = pygame.image.load("../Images/5183000.jpg")
 
 
 class GUI:
@@ -29,17 +30,33 @@ class GUI:
         self.pokemons = []
         self.agents = []
         self.graph = GraphAlgo()
+        self.algo = Algo(client)
 
     def draw(self):
-        pressed_pause = False
-        start_time = Time.time()
+        # algo = Algo(self.client)
         pygame.init()
+        start_time = Time.time()
         self.graph = self.get_graph()
-        self.agents = self.get_agents()
-        self.pokemons = self.get_pokemons()
+        self.agents = self.algo.get_agents_list()
+        self.scale_agents()
+        self.algo.graphAlgo = self.graph
         pygame.display.set_caption("Pokemon Game")
         running = True
         while running:
+            self.agents = self.algo.get_agents_list()
+            self.scale_agents()
+            self.pokemons = self.algo.get_pokemon_list()
+            # is_minus = False
+            for agent in self.agents:
+                self.algo.next_node(agent)
+                self.algo.go_to(agent)
+                # if agent.dest == -1:
+                #     is_minus = True
+                # self.scale_agents()
+                print(agent.pos)
+                ttl = self.client.time_to_end()
+            self.client.move()
+            self.scale_pokemons()
             pygame.display.update()
             clock.tick(REFRESH)
             screen.fill((0, 0, 0))
@@ -47,6 +64,7 @@ class GUI:
             elapsed_time = Time.time() - start_time
             if self.add_exit_button():
                 running = False
+                pygame.quit()
             if self.add_pasue_button():
                 self.pause()
                 start_time = Time.time() - elapsed_time
@@ -56,13 +74,24 @@ class GUI:
             self.draw_edges()
             self.draw_agents()
             self.draw_pokemons()
+            pygame.display.update()
+            clock.tick(REFRESH)
+
+            # for agent in self.agents:
+            #     if agent.dest == -1:
+            #         next_node = (agent.src - 1) % self.graph.graph.nodes_size
+            #         print(next_node)
+            #         self.client.choose_next_edge(
+            #             '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
+            #         ttl = self.client.time_to_end()
+            #         print(ttl, self.client.get_info())
+            #
+            # self.client.move()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-
-        pygame.display.update()
-        clock.tick(REFRESH)
-        pygame.quit()
+                    pygame.quit()
 
     def get_pokemons(self):
         pokemons = json.loads(self.client.get_pokemons(),
@@ -78,11 +107,6 @@ class GUI:
         agents = json.loads(self.client.get_agents(),
                             object_hook=lambda d: SimpleNamespace(**d)).Agents
         self.agents = [agent.Agent for agent in agents]
-        for a in self.agents:
-            x, y, _ = a.pos.split(',')
-            a.pos = SimpleNamespace(x=self.my_scale(
-                float(x), x=True), y=self.my_scale(float(y), y=True))
-        return self.agents
 
     def get_graph(self):
         graph_string = self.client.get_graph()
@@ -140,7 +164,7 @@ class GUI:
 
     def draw_edges(self):
         for i in self.graph.graph.nodes:
-            for e in self.get_graph().graph.all_out_edges_of_node(i).keys():
+            for e in self.graph.graph.all_out_edges_of_node(i).keys():
                 # find the edge nodes
                 src = next(n for n in self.graph.graph.nodes.values() if n.id == i)
                 dest = next(n for n in self.get_graph().graph.nodes.values() if n.id == e)
@@ -155,19 +179,34 @@ class GUI:
                 pygame.draw.line(screen, Color(61, 72, 126),
                                  (src_x, src_y), (dest_x, dest_y))
 
+    def scale_agents(self):
+        for a in self.agents:
+            x = a.pos[0]
+            y = a.pos[1]
+            a.pos = (self.my_scale(x, x=True), self.my_scale(y, y=True), 0)
+
+    def scale_pokemons(self):
+        for a in self.pokemons:
+            x = a.pos[0]
+            y = a.pos[1]
+            a.pos = (self.my_scale(x, x=True), self.my_scale(y, y=True), 0)
+
     def draw_agents(self):
-        for agent in self.get_agents():
+        for agent in self.agents:
+            print(agent.pos)
+            t = (int(agent.pos[0]), int(agent.pos[1]))
+            print(t)
             pygame.draw.circle(screen, Color(250, 10, 23),
-                               (int(agent.pos.x), int(agent.pos.y)), 10)
+                               t, 10)
         # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked
         # in the same way).
 
     def draw_pokemons(self):
-        for p in self.get_pokemons():
-            if p.type > 0:
-                pygame.draw.circle(screen, Color(0, 0, 255), (int(p.pos.x), int(p.pos.y)), 10)
+        for p in self.pokemons:
+            if p.type_ > 0:
+                pygame.draw.circle(screen, Color(0, 0, 255), (int(p.pos[0]), int(p.pos[1])), 10)
             else:
-                pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+                pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos[0]), int(p.pos[1])), 10)
 
     # def same_edge(self, p1, p2):
     #     for i in self.get_graph().graph.nodes:
@@ -212,7 +251,7 @@ class GUI:
             self.message_to_screen("Paused", "Black", -100)
             self.message_to_screen("Press C to continue", "Black", 25)
             pygame.display.update()
-            clock.tick(30)
+            clock.tick(REFRESH)
 
     def message_to_screen(self, msg, color, y_displace=0):
         text_surf, text_rect = self.text_objects(msg, color)

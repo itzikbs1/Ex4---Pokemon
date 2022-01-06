@@ -146,12 +146,10 @@ while client.is_running() == 'true':
     # in the same way).
     for p in pokemons:
         for p1 in pokemons:
-            pygame.draw.circle(screen, Color(0, 255, 255), (int(p1.pos.x), int(p1.pos.y)), 10)
-            for p2 in pokemons:
-                if p1.type != p2.type:
-                    pygame.draw.circle(screen, Color(0, 0, 255), (int(p2.pos.x), int(p2.pos.y)), 10)
-                else:
-                    pygame.draw.circle(screen, Color(0, 255, 255), (int(p2.pos.x), int(p2.pos.y)), 10)
+            if p1.type < 0:
+                pygame.draw.circle(screen, Color(0, 255, 255), (int(p1.pos.x), int(p1.pos.y)), 10)
+            else:
+                pygame.draw.circle(screen, Color(0, 0, 255), (int(p1.pos.x), int(p1.pos.y)), 10)
     # update screen changes
     display.update()
 
