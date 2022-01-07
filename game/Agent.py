@@ -15,7 +15,9 @@ class Agent:
         self.pos = pos
         self.graph_algo = graph
         self.next_node = -1
+        self.is_taken = False
         self.next_node_list = []  # [node :Node]
+        self.next_pokemon = None
 
     def setSrc(self, src):
         self.src = src
@@ -36,6 +38,7 @@ class Agent:
 
     def add_node(self, nodes: list):
         self.next_node_list.append(nodes)
+
 
     def dict_of_agents(self):
         agents = []

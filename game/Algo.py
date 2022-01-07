@@ -9,7 +9,8 @@ from src.Node import Location
 from client import Client
 import json
 
-EPS = 0.001
+EPS1 = 0.001
+EPS = EPS1 * EPS1
 
 
 def distance(pos1, pos2):
@@ -22,7 +23,8 @@ class Algo:
         self.client = client
         self.pokemons = []
         self.agents = []
-        self.characters = {}  # {id agent: pokemon,.....}
+
+        # {id agent: pokemon,.....}
         self.graphAlgo = GraphAlgo()
 
     def get_pokemon_list(self):
@@ -65,85 +67,113 @@ class Algo:
 
         return self.agents
 
+    def get_agent_info(self):
+        game_info_str = self.client.get_info()
+        y = json.loads(game_info_str)
+        return y["GameServer"]["agents"]
+
     def next_node(self, agent: Agent):
         min_dis = sys.maxsize
-        node_list = []
+        node_list_final = []
         for pokemon in self.pokemons:
-            self.get_dest_pok(pokemon)
+            if not pokemon.is_taken:
+                self.pokemon_edge(pokemon)
 
-            if len(agent.next_node_list) == 0:
-                current_dis, node_list = self.graphAlgo.shortest_path(agent.src, pokemon.src)
-                current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest]
-                node_list.append(pokemon.dest)
-            else:
-                current_dis, node_list = self.graphAlgo.shortest_path(agent.next_node_list[-1], pokemon.src)
-                current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest]
-            if current_dis < min_dis:
-                min_dis = current_dis
-                node_list.append(pokemon.dest)
-                self.characters[agent.id] = pokemon
-        node_list.pop(0)
-        agent.next_node_list.extend(node_list)
+                if len(agent.next_node_list) == 0:
+                    current_dis, node_list = self.graphAlgo.shortest_path(agent.src, pokemon.src)
+                    t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
+                    t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
+                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (t2 - t1)
+                    node_list.append(pokemon.dest)
 
-    def get_dest_pok(self, p):
+
+                else:
+                    current_dis, node_list = self.graphAlgo.shortest_path(agent.next_node_list[-1], pokemon.src)
+                    t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
+                    t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
+                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (t2 - t1)
+                    node_list.append(pokemon.dest)
+                if current_dis < min_dis:
+                    min_dis = current_dis
+                    node_list_final = node_list
+                    agent.next_pokemon = pokemon
+                    agent.is_taken = True
+                    pokemon.is_taken = True
+                    # print(node_list)
+                    # print(current_dis)
+            # print(self.characters[agent.id].pos)
+        if len(node_list_final) > 0:
+            node_list_final.pop(0)
+            agent.next_node_list.extend(node_list_final)
+
+    def go_to(self, agent):
+        if len(agent.next_node_list) > 0 and agent.dest == -1:
+            temp = agent.next_node_list[0]
+            agent.src = temp
+            del agent.next_node_list[0]
+            self.client.choose_next_edge(
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(temp) + '}')
+            self.is_caught(agent.next_pokemon, agent)
+            # self.client.move()
+
+    def get_dest_pok(self, p, src, dest):
+        dist = distance(src.location, dest.location)
+        if p.type_ < 0 and dest.id > src.id:
+            return False
+        elif p.type_ > 0 and dest.id < src.id:
+            return False
+        else:
+            return distance(p.pos, dest.location) + distance(p.pos, src.location) - EPS < dist
+
+    def pokemon_edge(self, p):
         for i in self.graphAlgo.graph.nodes:
             for e in self.graphAlgo.graph.all_out_edges_of_node(i).keys():
                 src = self.graphAlgo.graph.nodes[i]
                 dest = self.graphAlgo.graph.nodes[e]
-                dist = distance(src.location, dest.location)
-                if distance(p.pos, dest.location) + distance(p.pos, src.location) - EPS < dist:
-                    if p.type_ < 0 and dest.id < src.id:
-                        p.src = src.id
-                        p.dest = dest.id
-                    elif p.type_ > 0 and dest.id > src.id:
-                        p.src = src.id
-                        p.dest = dest.id
-                    else:
-                        continue
+                if self.get_dest_pok(p, src, dest):
+                    p.src = src.id
+                    p.dest = dest.id
 
-        return -1
+    def dist_ag_to_pok(self, agent, pokemon):
+        t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
+        t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
+        return self.graphAlgo.shortest_path_dist(agent.src, pokemon.src) + (t2 - t1)
 
-    def go_to(self, agent):
-        if len(agent.next_node_list) > 0 and agent.dest == -1:
-            print(agent.pos)
-            # print(agent.next_node_list)
-            temp = agent.next_node_list[0]
-            agent.src = temp
-            del agent.next_node_list[0]
-            # agent.setPos(self.graphAlgo.graph.nodes[temp].location)
-            self.client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(temp) + '}')
-            self.is_caught(self.pokemons, agent)
-            # self.client.move()
-            print(agent.pos)
+    def is_caught(self, pokemon, agent):
+        if distance(agent.pos, pokemon.pos) < EPS:
+            if pokemon.type_ < 0 and agent.dest < agent.src:
+                agent.value += pokemon.value
+                agent.next_pokemon = None
+                # pokemon.is_taken = False
+                # self.pokemons.remove(pokemon)
+            elif pokemon.type_ > 0 and agent.dest > agent.src:
+                agent.value += pokemon.value
+                agent.next_pokemon = None
+                # pokemon.is_taken = False
+                # self.pokemons.remove(pokemon)
+            else:
+                return
 
-    def add_agent(self):
-        pass
-
-    def is_caught(self, pokemons, agent):
-        for pokemon in pokemons:
-            if distance(agent.pos, pokemon.pos) < EPS:
-                if pokemon.type_ < 0 and agent.dest < agent.src:
-                    agent.value += pokemon.value
-                    self.characters.pop(agent.id, None)
-                    self.pokemons.remove(pokemon)
-                elif pokemon.type_ > 0 and agent.dest > agent.src:
-                    agent.value += pokemon.value
-                    self.characters.pop(agent.id, None)
-                    self.pokemons.remove(pokemon)
-                else:
-                    return
-
-    def dict_of_agents(self):
-        agents = []
+    def choose_agent(self):
         for agent in self.agents:
-            k = agent.id
-            v = agent.value
-            src = agent.src
-            dest = agent.dest
-            agent = {"id": k, "value": v.value, "src": src, "dest": dest}
-            loc = str(v.pos)[1:-1]
-            agent["pos"] = str(loc.replace(' ', ''))
-            final_dict = {"Agent", agent}
-            agents.append(final_dict)
-        return agents
+            if agent.next_pokemon is None and not agent.is_taken:
+                print(agent.next_pokemon)
+                self.next_node(agent)
+                self.go_to(agent)
+                print(agent.is_taken)
+                print(agent.next_pokemon, agent.id)
+        self.client.move()
+
+    # def dict_of_agents(self):
+    #     agents = []
+    #     for agent in self.agents:
+    #         k = agent.id
+    #         v = agent.value
+    #         src = agent.src
+    #         dest = agent.dest
+    #         agent = {"id": k, "value": v.value, "src": src, "dest": dest}
+    #         loc = str(v.pos)[1:-1]
+    #         agent["pos"] = str(loc.replace(' ', ''))
+    #         final_dict = {"Agent", agent}
+    #         agents.append(final_dict)
+    #     return agents

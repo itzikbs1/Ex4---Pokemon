@@ -12,6 +12,7 @@ class Pokemon:
         self.pos = pos
         self.src = 0
         self.dest = 0
+        self.is_taken = False
         # self.graph_algo = graph_algo
 
     def setType(self, type_):

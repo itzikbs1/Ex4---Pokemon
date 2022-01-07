@@ -13,7 +13,7 @@ from Algo import Algo
 WIDTH, HEIGHT = 1080, 720
 screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
 clock = pygame.time.Clock()
-REFRESH = 60
+REFRESH = 20
 pygame.font.init()
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 RADIUS = 15
@@ -33,29 +33,29 @@ class GUI:
         self.algo = Algo(client)
 
     def draw(self):
-        # algo = Algo(self.client)
         pygame.init()
         start_time = Time.time()
         self.graph = self.get_graph()
         self.agents = self.algo.get_agents_list()
         self.scale_agents()
         self.algo.graphAlgo = self.graph
+        # self.algo.init_char()
         pygame.display.set_caption("Pokemon Game")
         running = True
         while running:
             self.agents = self.algo.get_agents_list()
             self.scale_agents()
             self.pokemons = self.algo.get_pokemon_list()
+            self.algo.choose_agent()
             # is_minus = False
-            for agent in self.agents:
-                self.algo.next_node(agent)
-                self.algo.go_to(agent)
-                # if agent.dest == -1:
-                #     is_minus = True
-                # self.scale_agents()
-                print(agent.pos)
-                ttl = self.client.time_to_end()
-            self.client.move()
+            # for agent in self.agents:
+            #     self.algo.next_node(agent)
+            #     self.algo.go_to(agent)
+            #     if agent.dest == -1:
+            #         is_minus = True
+            #     self.scale_agents()
+            #     ttl = self.client.time_to_end()
+            # self.client.move()
             self.scale_pokemons()
             pygame.display.update()
             clock.tick(REFRESH)
@@ -193,9 +193,7 @@ class GUI:
 
     def draw_agents(self):
         for agent in self.agents:
-            print(agent.pos)
             t = (int(agent.pos[0]), int(agent.pos[1]))
-            print(t)
             pygame.draw.circle(screen, Color(250, 10, 23),
                                t, 10)
         # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked
