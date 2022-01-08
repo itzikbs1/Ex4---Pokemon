@@ -11,8 +11,7 @@ But how do we find the best node to go to? This is done in the Algo class
 
 **Pokemon** - This class represents a pokemon. it has the default parameters given from the client like value, type and so on. Some additional parameters are src and dest which will determine the source node and the destination node of the edge the pokemon is on.
 
-**Algo** - This class implements the algorithm used to find the best route to each pokemon. the algorithm uses previous graph implementation as described in Ex3. You can find the project here: 
-[(https://github.com/EranK123/Ex3)]
+**Algo** - This class implements the algorithm used to find the best route to each pokemon. the algorithm uses previous graph implementation as described in Ex3. You can find the project here: [Ex3](https://github.com/EranK123/Ex3)
 Now we can use any algorithms used in this project to help us find the best route to a certain pokemon. 
 Given a client we construct  a graph, agents and pokemons to work on.
  The algorithm will iterate over each pokemon. It will first find the edge the pokemon is on. This is done by checking the distance between the pokemon position to an edge source and the same for edge dest.  After we find where the pokemon is located, we call the shortest_path algorithm. This algorithm is using the dijkstra algorithm to find the shortest path from node a to node b and in addition returns the path. We call this method on the agent's current location and the source of the edge the pokemon is located on. Now we have the cost of the path and the actual path saved in a list. Because we calculated the path from agent pos to pokemon src we need to add the weight of the edge to get to pokemon dest. We then add the dest to the list.
