@@ -38,7 +38,16 @@ To run the program the user first needs to download the project from the github 
 
 ### Screen Recordings
 
+**Case 4 Recording:**
+
 https://user-images.githubusercontent.com/93202645/148656554-62dfac0b-2db0-48f7-a495-60293e79f352.mov
+
+**Case 10 Recording:**
+
+
+https://user-images.githubusercontent.com/93202645/148656812-7cd93034-6beb-497f-88b1-5d16a913bab2.mov
+
+
 
 
 
