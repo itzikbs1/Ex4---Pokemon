@@ -19,3 +19,5 @@ To fill choose_next_edge parameters we get the first node from agent’s list no
 
 **GUI** - This class draws the graph, agents and pokemons and visualizes  the process of agents catching pokemons. This class gets a client as it’s parameter and with the client's data gets all the parameters we need to construct the gui. The gui repeats it’s drawing process until the client is not running anymore. This process includes drawing the agents, pokemons, edges and nodes. Each iteration we get new data about pokemons and the client so the gui will always updates the drawing.
 Some added features about the gui are the Exit button and Pause button. Both are using the button class to construct a button. As the name suggests, these buttons pause the game or exit the game. In addition there is a timer on the screen to measure the running time of each stage, the agents score and amount of moves.
+
+**How To Run** - To run the program the user needs to be in the same directory as the client class.
