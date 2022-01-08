@@ -1,11 +1,11 @@
 # Ex4---Pokemon
-#The goal of this project
+###### The goal of this project
 The goal of this project is to score the most points in the least amount of moves in a specified time.
 We get a client. This client has the information about the game such as the agents, represented a json formatted string, the pokemons, also represented a json formatted string and a graph which is represented the same. We also get game info such as the amount of agents, amount of moves overtime and so on.
 Using this data we need to catch as many pokemons as possible with our agents. To do so we need to find the best next node for the agent to go to, then call choose_next_edge function given in the client with the best next node we found and finally call move function which activates all  choose_next_edge calls.
 But how do we find the best node to go to? This is done in the Algo class
 
-##The classes
+## The classes
 
 **Agent** - This class represents an agent. It has the default parameters given from the client like id, value and so on. Some additional parameters added  like next_node_list. This list every agents has will determine the next node the agent has to move to.
 
