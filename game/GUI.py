@@ -70,23 +70,13 @@ class GUI:
                 start_time = Time.time() - elapsed_time
             self.get_time(int(elapsed_time))
             self.get_score()
+            self.get_moves()
             self.draw_nodes()
             self.draw_edges()
             self.draw_agents()
             self.draw_pokemons()
             pygame.display.update()
             clock.tick(REFRESH)
-
-            # for agent in self.agents:
-            #     if agent.dest == -1:
-            #         next_node = (agent.src - 1) % self.graph.graph.nodes_size
-            #         print(next_node)
-            #         self.client.choose_next_edge(
-            #             '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
-            #         ttl = self.client.time_to_end()
-            #         print(ttl, self.client.get_info())
-            #
-            # self.client.move()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -196,30 +186,13 @@ class GUI:
             t = (int(agent.pos[0]), int(agent.pos[1]))
             pygame.draw.circle(screen, Color(250, 10, 23),
                                t, 10)
-        # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked
-        # in the same way).
 
     def draw_pokemons(self):
         for p in self.pokemons:
-            if p.type_ > 0:
+            if p.type_ == 1:
                 pygame.draw.circle(screen, Color(0, 0, 255), (int(p.pos[0]), int(p.pos[1])), 10)
             else:
                 pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos[0]), int(p.pos[1])), 10)
-
-    # def same_edge(self, p1, p2):
-    #     for i in self.get_graph().graph.nodes:
-    #         for e in self.get_graph().graph.all_out_edges_of_node(i):
-    #             src = self.get_graph().graph.nodes[i]
-    #             dest = self.get_graph().graph.nodes[e.get(0)]
-    #             m = (src.location(1) - dest.location(1)) / (src.location(0) - dest.location(0))
-    #             if p1.pos.y - src.location(1) == m * (p1.pos.x - src.location(0)) and p2.pos.y - src.location(
-    #                     1) == m * (p2.pos.x - src.location(0)):
-    #                 if p1.type != p2.type:
-    #                     return False
-    #                 else:
-    #                     return True
-    #
-    #     return False
 
     def quit(self, mark):
         for event in pygame.event.get():
@@ -268,3 +241,7 @@ class GUI:
     def get_time(self, current_time):
         time = FONT.render("Game Time : " + str(current_time), True, Color("Black"))
         screen.blit(time, (WIDTH - 500, 10))
+
+    def get_moves(self):
+        moves = FONT.render("Moves Counter :" + str(self.algo.get_info()[1]), True, Color("Black"))
+        screen.blit(moves, (WIDTH - 200, 50))

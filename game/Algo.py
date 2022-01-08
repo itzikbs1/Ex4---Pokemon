@@ -67,14 +67,15 @@ class Algo:
 
         return self.agents
 
-    def get_agent_info(self):
+    def get_info(self):
         game_info_str = self.client.get_info()
         y = json.loads(game_info_str)
-        return y["GameServer"]["agents"]
+        return [y["GameServer"]["agents"], y["GameServer"]["moves"]]
 
     def next_node(self, agent: Agent):
         min_dis = sys.maxsize
         node_list_final = []
+        pokemon = None
         for pokemon in self.pokemons:
             if not pokemon.is_taken:
                 self.pokemon_edge(pokemon)
@@ -91,18 +92,22 @@ class Algo:
                     current_dis, node_list = self.graphAlgo.shortest_path(agent.next_node_list[-1], pokemon.src)
                     t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
                     t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
-                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (t2 - t1)
+                    until_dis = self.graphAlgo.shortest_path_dist(agent.next_node_list[0], agent.next_node_list[-1])
+                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (
+                                t2 - 2 * t1) + until_dis
+                    # current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (t2 - t1)
                     node_list.append(pokemon.dest)
                 if current_dis < min_dis:
                     min_dis = current_dis
                     node_list_final = node_list
                     agent.next_pokemon = pokemon
                     agent.is_taken = True
-                    pokemon.is_taken = True
+
                     # print(node_list)
                     # print(current_dis)
             # print(self.characters[agent.id].pos)
         if len(node_list_final) > 0:
+            pokemon.is_taken = True
             node_list_final.pop(0)
             agent.next_node_list.extend(node_list_final)
 
@@ -142,12 +147,12 @@ class Algo:
     def is_caught(self, pokemon, agent):
         if distance(agent.pos, pokemon.pos) < EPS:
             if pokemon.type_ < 0 and agent.dest < agent.src:
-                agent.value += pokemon.value
+                # agent.value += pokemon.value
                 agent.next_pokemon = None
                 # pokemon.is_taken = False
                 # self.pokemons.remove(pokemon)
             elif pokemon.type_ > 0 and agent.dest > agent.src:
-                agent.value += pokemon.value
+                # agent.value += pokemon.value
                 agent.next_pokemon = None
                 # pokemon.is_taken = False
                 # self.pokemons.remove(pokemon)
@@ -156,12 +161,10 @@ class Algo:
 
     def choose_agent(self):
         for agent in self.agents:
-            if agent.next_pokemon is None and not agent.is_taken:
-                print(agent.next_pokemon)
-                self.next_node(agent)
-                self.go_to(agent)
-                print(agent.is_taken)
-                print(agent.next_pokemon, agent.id)
+            # if agent.next_pokemon is None and not agent.is_taken:
+            self.next_node(agent)
+            self.go_to(agent)
+
         self.client.move()
 
     # def dict_of_agents(self):
