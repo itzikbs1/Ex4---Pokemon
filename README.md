@@ -36,7 +36,7 @@ To run the program the user first needs to download the project from the github 
 
 
 
-## Screen Recordings
+### Screen Recordings
 
 https://user-images.githubusercontent.com/93202645/148656554-62dfac0b-2db0-48f7-a495-60293e79f352.mov
 
