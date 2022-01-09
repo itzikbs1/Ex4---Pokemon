@@ -7,7 +7,7 @@ But how do we find the best node to go to? This is done in the Algo class
 
 ## The classes
 
-**Agent** - This class represents an agent. It has the default parameters given from the client like id, value and so on. Some additional parameters added  like next_node_list. This list every agents has will determine the next node the agent has to move to.
+**Agent** - This class represents an agent. It has the default parameters given from the client like id, value and so on. 
 
 **Pokemon** - This class represents a pokemon. it has the default parameters given from the client like value, type and so on. Some additional parameters are src and dest which will determine the source node and the destination node of the edge the pokemon is on.
 
