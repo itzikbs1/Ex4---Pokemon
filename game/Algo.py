@@ -31,6 +31,36 @@ class Algo:
         self.pokemons = []
         self.agents = []
         self.graphAlgo = GraphAlgo()
+        self.agents_list = {}  # {id agent: path,.....}
+        self.agents_list_pok = {}  # {id agent: pok,.....}
+        self.counter_nodes = {}  # {agent id, counter to num of node to pok}
+        self.size_path = {}  # {agent.id, size path}
+
+    def init_list_agents(self):
+        for ag in self.agents:
+            self.agents_list[ag.id] = []
+
+    def init_pok_list_agents(self):
+        for ag in self.agents:
+            self.agents_list_pok[ag.id] = []
+
+    def init_counter_nodes(self):
+        for ag in self.agents:
+            self.counter_nodes[ag.id] = 0
+
+    def init_size_path(self):
+        for ag in self.agents:
+            self.size_path[ag.id] = 0
+
+    def free_pok(self, agent, pokemon):
+        for poki in self.agents_list_pok.values():
+            if poki is not None:
+                for p in poki:
+                    if p is not None:
+                        if p.value == pokemon.value and p.type_ == pokemon.type_:
+                            if p.pos[0] == pokemon.pos[0] and p.pos[1] == pokemon.pos[1]:
+                                return False
+        return True
 
     def get_pokemon_list(self):
         """
@@ -117,48 +147,57 @@ class Algo:
         """
         min_dis = sys.maxsize  # set min distance to max size
         node_list_final = []
-        pokemon = None
+        pok = None
         for pokemon in self.pokemons:  # iterate over all pokemons
-            if not pokemon.is_taken:
-                self.pokemon_edge(pokemon)  # update the edge the pokemon is on
+            if self.free_pok(agent, pokemon):
+                if len(self.agents_list_pok[agent.id]) == 0:
+                    self.pokemon_edge(pokemon)  # update the edge the pokemon is on
 
-                if len(agent.next_node_list) == 0:  # if the list is empty
-                    current_dis, node_list = self.graphAlgo.shortest_path(agent.src, pokemon.src)  # calc best path
-                    t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
-                    t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
-                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (
-                            t2 - t1)  # add dest
-                    node_list.append(pokemon.dest)  # add to node list
+                    if len(self.agents_list[agent.id]) == 0:  # if the list is empty
+                        current_dis, node_list = self.graphAlgo.shortest_path(agent.src, pokemon.src)  # calc best path
+                        t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
+                        t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
+                        current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (
+                                t2 - t1)  # add dest
+                        node_list.append(pokemon.dest)  # add to node list
 
-                else:  # if the list is not empty do the same
-                    current_dis, node_list = self.graphAlgo.shortest_path(agent.next_node_list[-1], pokemon.src)
-                    t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
-                    t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
-                    until_dis = self.graphAlgo.shortest_path_dist(agent.next_node_list[0], agent.next_node_list[-1])
-                    current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (
-                            t2 - 2 * t1) + until_dis
-                    node_list.append(pokemon.dest)
-                if current_dis < min_dis:  # check for minimum distance path
-                    min_dis = current_dis
-                    node_list_final = node_list
-                    agent.next_pokemon = pokemon
+                    else:  # if the list is not empty do the same
+                        current_dis, node_list = self.graphAlgo.shortest_path(self.agents_list[agent.id][-1],
+                                                                              pokemon.src)
+                        t1 = distance(agent.pos, self.graphAlgo.graph.nodes[agent.src].location)
+                        t2 = distance(pokemon.pos, self.graphAlgo.graph.nodes[pokemon.src].location)
+                        until_dis = self.graphAlgo.shortest_path_dist(self.agents_list[agent.id][0],
+                                                                      self.agents_list[agent.id][-1])
+                        current_dis += self.graphAlgo.graph.nodes[pokemon.src].out_edges[pokemon.dest] + (
+                                t2 - 2 * t1) + until_dis
+                        node_list.append(pokemon.dest)
+                    if current_dis < min_dis:  # check for minimum distance path
+                        min_dis = current_dis
+                        node_list_final = node_list
+                        pok = pokemon
 
         if len(node_list_final) > 0:
-            pokemon.is_taken = True
+            poki = Pokemon(pok.value, pok.type_, pok.pos)
+            self.agents_list_pok[agent.id].append(poki)
             node_list_final.pop(0)  # pop the first value because its the source of the agent
-            agent.next_node_list.extend(node_list_final)  # add to it's list
+            self.agents_list[agent.id].extend(node_list_final)  # add to it's list
+            self.size_path[agent.id] = len(node_list_final)
 
     def go_to(self, agent):
         """
         This function sets the next node for the agent to go to
         :param agent: Current agent
         """
-        if len(agent.next_node_list) > 0 and agent.dest == -1:
-            temp = agent.next_node_list[0]  # get first element from list
+        if len(self.agents_list[agent.id]) > 0 and agent.dest == -1:
+            temp = self.agents_list[agent.id][0]  # get first element from list
             agent.src = temp  # set is as the new agent src
-            del agent.next_node_list[0]  # remove it
+            del self.agents_list[agent.id][0]  # remove it
+            self.counter_nodes[agent.id] += 1
             self.client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(temp) + '}')  # set next node
+            if self.counter_nodes[agent.id] == self.size_path[agent.id]:
+                self.counter_nodes[agent.id] = 0
+                self.agents_list_pok[agent.id] = []
 
     def get_dest_pok(self, p, src, dest):
         """

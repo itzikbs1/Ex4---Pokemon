@@ -31,9 +31,6 @@ class TestAgent(TestCase):
     def test_set_dest(self):
         self.assertEqual(self.agent.dest, 1)
 
-    def test_set_pos(self):
-        pass
-
     def test_set_next_node(self):
         self.assertEqual(self.agent.next_node, 0)
 

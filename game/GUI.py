@@ -43,6 +43,10 @@ class GUI:
         start_time = Time.time()  # get the start time so we start to measure it and display it to the screen
         self.graph = self.algo.get_graph()  # get the graph from the client
         self.agents = self.algo.get_agents_list()  # get initial agents list from client
+        self.algo.init_list_agents()
+        self.algo.init_pok_list_agents()
+        self.algo.init_counter_nodes()
+        self.algo.init_size_path()
         self.scale_agents()
         self.algo.graphAlgo = self.graph
         pygame.display.set_caption("Pokemon Game")
