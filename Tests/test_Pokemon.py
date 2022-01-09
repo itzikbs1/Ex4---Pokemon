@@ -12,3 +12,6 @@ class test_Pokemon(TestCase):
 
     def test_set_pos(self):
         self.assertEqual(self.pokemon.pos, (12, 35, 42))
+
+    def test_set_value(self):
+        self.assertEqual(self.pokemon.value, 12)
