@@ -25,6 +25,7 @@ Some added features about the gui are the Exit button and Pause button. Both are
 ### Running the project
 
 To run the program the user first needs to download the project from the github page including the jar file. Then he needs open the terminal and  be in the same directory as the client class. Then type the following command: *java -jar Ex4_Server_v0.0.jar (case number)*. Where the case number ranges from 0 to 15. Press enter and then run the GameRun class to initiate the gui and the algorithm.
+You can also download from the release section. Simply download the release zip and follow the above steps
 
 ### UMl Diagram
 
